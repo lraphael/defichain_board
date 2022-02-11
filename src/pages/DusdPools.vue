@@ -4,6 +4,7 @@
       <base-table
         :rows="rows"
         :columns="columns"
+        :loading="loading"
         :row-key="'pair'"
         :rows-per-page="0"
         :full-heigth="false"
@@ -144,6 +145,7 @@ export default defineComponent({
     const rewardsPerBlockDusdPairs = ref(0)
     const secondsToRefresh = ref(30)
     const stockTokenRewardPercentage = ref(24.68)
+    const loading = ref(false)
 
     const poolRewards = {
       'DUSD-DFI': 50,
@@ -269,11 +271,14 @@ export default defineComponent({
       })
     }
     const getStats = async () => {
+      loading.value = true
       const res = await client.stats.get()
       stats.value = res
       rewardsPerBlockDusdPairs.value = stats.value?.emission.total * stockTokenRewardPercentage.value / 100
+      rows.value = []
 
-      getPoolPairs()
+      await getPoolPairs()
+      loading.value = false
     }
 
     getStats()
@@ -314,6 +319,7 @@ export default defineComponent({
     return {
       rows,
       columns,
+      loading,
       rewardsPerBlockDusdPairs,
       secondsToRefresh
     }
