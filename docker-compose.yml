@@ -21,7 +21,6 @@ services:
     volumes:
       - .:/app
       - defi_node_npm:/app/node_modules
-      - defi_dist:/app/dist
     ports:
       - "9000:9000"
     stdin_open: true
@@ -30,6 +29,4 @@ services:
 
 volumes:
     defi_node_npm:
-      external: true
-    defi_dist:
       external: true

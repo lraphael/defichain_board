@@ -1,0 +1,22 @@
+version: "3.7"
+
+services:
+
+  defichain_board_nginx:
+    image: nginx
+    volumes:
+      - ./dist/spa:/usr/share/nginx/html:ro
+    labels:
+      - traefik.http.routers.defichain_board_nginx.rule=Host(`defichain-board.com`)
+      - traefik.http.routers.defichain_board_nginx.tls=true
+      - traefik.http.routers.defichain_board_nginx.tls.certresolver=le
+      - traefik.docker.network=traefik
+      - traefik.enable=true
+      - traefik.port=80
+    networks:
+      - traefik
+      - default
+
+networks:
+  traefik:
+    external: true

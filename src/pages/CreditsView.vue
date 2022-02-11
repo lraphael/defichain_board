@@ -5,7 +5,12 @@
         <q-item>
           <q-item-section>
             <q-item-label>
-              Inspired by <a href="https://www.krypto-sprungbrett.com/stock-token-apr/" target="_blank">Krypto Sprungbrett</a>
+              Inspired by <a
+                href="https://www.krypto-sprungbrett.com/stock-token-apr/"
+                target="_blank"
+              >
+                Krypto Sprungbrett
+              </a>
             </q-item-label>
           </q-item-section>
         </q-item>
