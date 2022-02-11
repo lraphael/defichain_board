@@ -1,0 +1,43 @@
+# setting my own prompt
+BLACK="\[\033[0;30m\]"
+GREY_DARK="\[\033[1;30m\]"
+RED="\[\033[0;31m\]"
+RED_BOLD="\[\033[1;31m\]"
+GREEN="\[\033[0;32m\]"
+GREEN_BOLD="\[\033[1;32m\]"
+BRAUN="\[\033[0;33m\]"
+YELLOW_BOLD="\[\033[1;33m\]"
+BLU="\[\033[0;34m\]"
+BLU_BOLD="\[\033[1;34m\]"
+LILA_DARK="\[\033[0;35m\]"
+LILA_BOLD="\[\033[1;35m\]"
+CYAN_DARK="\[\033[0;36m\]"
+CYAN="\[\033[1;36m\]"
+GREY_LIGHT="\[\033[0;37m\]"
+WHITE_BOLD="\[\033[1;37m\]"
+NONE_COLOR="\[\033[0m\]"
+
+#~ DEFAULT PS1
+export PS1="$RED_BOLD\u$YELLOW_BOLD@$CYAN\h $YELLOW_BOLD\w $LILA_BOLD\$ $NONE_COLOR"
+
+# some more ls aliases
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias cda='cd /app'
+
+# node options
+export node_options=--max_old_space_size=4096
+
+# npm runserver alias
+alias runserver='quasar dev'
+
+# make bash completition work
+source /etc/profile.d/bash_completion.sh
+
+# for vue-cli-service
+export PATH=/app/node_modules/.bin:$PATH

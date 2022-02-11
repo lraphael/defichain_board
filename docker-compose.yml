@@ -1,0 +1,35 @@
+
+version: "3.4"
+
+# docker volume create defi_node_npm
+# docker volume create defi_dist
+
+services:
+
+  defi_dashboard:
+    hostname: defi_dashboard
+    container_name: defi_dashboard
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      labels:
+        pro.asix.description: "Defichain Dashboard"
+        pro.asix.maintainer: "Raphael Lechner <raphael.lechner@gmail.com>"
+        pro.asix.website: "https://defi.raphaellechner.it"
+    image: defi_dashboard
+    restart: 'always'
+    volumes:
+      - .:/app
+      - defi_node_npm:/app/node_modules
+      - defi_dist:/app/dist
+    ports:
+      - "9000:9000"
+    stdin_open: true
+    tty: true
+    command: bash -l
+
+volumes:
+    defi_node_npm:
+      external: true
+    defi_dist:
+      external: true

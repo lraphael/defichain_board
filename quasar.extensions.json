@@ -1,0 +1,11 @@
+{
+  "@quasar/apollo": {
+    "typescript": true
+  },
+  "@quasar/testing-e2e-cypress": {
+    "options": [
+      "scripts",
+      "typescript"
+    ]
+  }
+}
