@@ -274,7 +274,7 @@ export default defineComponent({
     const navigation = ref<typeNavigationItem[]>([])
     navigation.value = [
       // { icon: 'mdi-home-outline', text: 'Dashboard', to: '/dashboard/', type: 'link' },
-      { icon: 'mdi-emoticon-cool-outline', text: 'DFI Pools', to: '/dfipools/', type: 'link' },
+      { icon: 'mdi-table-large', text: 'DFI Pools', to: '/dfipools/', type: 'link' },
       { icon: 'mdi-currency-usd', text: 'DEX Currency Matrix', to: '/dexmatrix/', type: 'link' },
       { icon: 'mdi-finance', text: 'DUSD Pools', to: '/dusdpools/', type: 'link' },
       // { icon: 'mdi-domain', text: 'dToken Charts', to: '/dtokencharts/', type: 'link' },
