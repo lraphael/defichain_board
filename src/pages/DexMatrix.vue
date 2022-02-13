@@ -90,7 +90,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, inject, watch } from 'vue'
+import { defineComponent, ref, inject, watch, onBeforeUnmount } from 'vue'
 import BaseTable from 'src/components/BaseTable.vue'
 import type { TableColumn } from 'src/components/BaseTable.vue'
 import type { Action } from 'src/layouts/DashboardLayout.vue'
@@ -268,9 +268,13 @@ export default defineComponent({
 
     getStats()
 
-    setInterval(() => {
+    const autorefresh = setInterval(() => {
       secondsToRefresh.value--
     }, 1000)
+
+    onBeforeUnmount(() => {
+      clearInterval(autorefresh)
+    })
 
     watch(secondsToRefresh, () => {
       if (secondsToRefresh.value <= 0) {

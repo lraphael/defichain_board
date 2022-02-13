@@ -1,6 +1,6 @@
 <template>
   <q-layout
-    view="hHh LpR fFf"
+    view="hHh LpR lFf"
     class="bg-grey-1"
   >
     <q-header
@@ -145,6 +145,15 @@
     <q-page-container>
       <router-view />
     </q-page-container>
+
+    <q-footer
+      v-if="footerContent"
+    >
+      <q-toolbar class="bg-white text-black">
+        <q-space />
+        <div>{{ footerContent }}</div>
+      </q-toolbar>
+    </q-footer>
   </q-layout>
 </template>
 
@@ -255,10 +264,20 @@ export default defineComponent({
       leftDrawerOpen.value = !leftDrawerOpen.value
     }
 
+    /**
+     * Footer
+     */
+    const footerContent = ref(null) as any
+    const setFooterContent = (text: string) => {
+      footerContent.value = text
+    }
+    provide('setFooterContent', setFooterContent)
+
     watch(() => route.fullPath, () => {
       mainActions.value = []
       mainSecondaryActions.value = []
       searchVisible.value = false
+      footerContent.value = null
     })
 
     /** Normale Navigation */
@@ -273,7 +292,7 @@ export default defineComponent({
     }
     const navigation = ref<typeNavigationItem[]>([])
     navigation.value = [
-      // { icon: 'mdi-home-outline', text: 'Dashboard', to: '/dashboard/', type: 'link' },
+      { icon: 'mdi-home-outline', text: 'Dashboard', to: '/dashboard/', type: 'link' },
       { icon: 'mdi-table-large', text: 'DFI Pools', to: '/dfipools/', type: 'link' },
       { icon: 'mdi-currency-usd', text: 'DEX Currency Matrix', to: '/dexmatrix/', type: 'link' },
       { icon: 'mdi-finance', text: 'DUSD Pools', to: '/dusdpools/', type: 'link' },
@@ -362,7 +381,8 @@ export default defineComponent({
       mainSecondaryActions,
       toggleLeftDrawer,
       searchVisible,
-      onButtonClick
+      onButtonClick,
+      footerContent
     }
   }
 })
