@@ -162,7 +162,6 @@ export default defineComponent({
 
       // Latest Block
       const out = await client.blocks.list(1)
-      console.log(out)
       blockHeight.value = out[0].height
       lastBlock.value = dayjs(out[0].time * 1000).fromNow()
 

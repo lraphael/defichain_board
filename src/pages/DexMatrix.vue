@@ -8,6 +8,7 @@
         :row-key="'pair'"
         :rows-per-page="0"
         :full-heigth="false"
+        :hide-bottom="true"
         class="my-sticky-header-column-table"
       >
         <template
@@ -76,14 +77,6 @@
             </q-th>
           </q-tr>
         </template>
-
-        <template #bottom>
-          <div />
-          <q-space />
-          <div>
-            Autorefresh in {{ secondsToRefresh }} seconds
-          </div>
-        </template>
       </base-table>
     </div>
   </q-page>
@@ -119,12 +112,19 @@ export default defineComponent({
     const secondsToRefresh = ref(30)
     const loading = ref(false)
 
+    const setFooterContent = inject('setFooterContent') as (text: string) => void
+
     const client = new WhaleApiClient({
       url: 'https://ocean.defichain.com',
       timeout: 60000,
       version: 'v0',
       network: 'mainnet'
     })
+
+    const updateCounter = () => {
+      secondsToRefresh.value--
+      setFooterContent(`Autorefresh in ${secondsToRefresh.value} seconds`)
+    }
 
     const setMainTitle = inject('setMainTitle') as (title: string, subTitle?: string) => void
     setMainTitle(title)
@@ -269,7 +269,7 @@ export default defineComponent({
     getStats()
 
     const autorefresh = setInterval(() => {
-      secondsToRefresh.value--
+      updateCounter()
     }, 1000)
 
     onBeforeUnmount(() => {
@@ -279,6 +279,7 @@ export default defineComponent({
     watch(secondsToRefresh, () => {
       if (secondsToRefresh.value <= 0) {
         secondsToRefresh.value = 30
+        updateCounter()
         rows.value = []
         getStats()
       }
@@ -308,8 +309,7 @@ export default defineComponent({
     return {
       rows,
       columns,
-      loading,
-      secondsToRefresh
+      loading
     }
   }
 })

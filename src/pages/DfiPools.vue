@@ -42,9 +42,6 @@
             Total DFI-Pool Rewards per Block: {{ rewardsPerBlockDfiPairs.toFixed(2) }} DFI
           </div>
           <q-space />
-          <div>
-            Autorefresh in {{ secondsToRefresh }} seconds
-          </div>
         </template>
       </base-table>
     </div>
@@ -81,12 +78,19 @@ export default defineComponent({
     const secondsToRefresh = ref(30)
     const loading = ref(false)
 
+    const setFooterContent = inject('setFooterContent') as (text: string) => void
+
     const client = new WhaleApiClient({
       url: 'https://ocean.defichain.com',
       timeout: 60000,
       version: 'v0',
       network: 'mainnet'
     })
+
+    const updateCounter = () => {
+      secondsToRefresh.value--
+      setFooterContent(`Autorefresh in ${secondsToRefresh.value} seconds`)
+    }
 
     const setMainTitle = inject('setMainTitle') as (title: string, subTitle?: string) => void
     setMainTitle(title)
@@ -182,13 +186,14 @@ export default defineComponent({
       rewardsPerBlockDfiPairs.value = stats.value?.emission.dex
 
       await getPoolPairs()
+      secondsToRefresh.value = 30
       loading.value = false
     }
 
     getStats()
 
     const autorefresh = setInterval(() => {
-      secondsToRefresh.value--
+      updateCounter()
     }, 1000)
 
     onBeforeUnmount(() => {
@@ -198,6 +203,7 @@ export default defineComponent({
     watch(secondsToRefresh, () => {
       if (secondsToRefresh.value <= 0) {
         secondsToRefresh.value = 30
+        updateCounter()
         rows.value = []
         getStats()
       }
