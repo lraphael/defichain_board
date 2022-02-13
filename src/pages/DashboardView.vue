@@ -4,7 +4,7 @@
       <base-dashboard-card
         class=""
         :uniq-name="'card1'"
-        :style="{minHeight: '100px', width: '180px'}"
+        :style="{height: '130px', width: '180px'}"
         :loading="loading"
         @click="openURL('https://defiscan.live/')"
       >
@@ -28,10 +28,11 @@
         </template>
       </base-dashboard-card>
     </div>
+
     <div>
       <base-dashboard-card
         :uniq-name="'nextPriceBlock'"
-        :style="{minHeight: '100px', width: '180px'}"
+        :style="{height: '130px', width: '180px'}"
         :loading="loading"
       >
         <template #title>
@@ -54,6 +55,33 @@
         </template>
       </base-dashboard-card>
     </div>
+
+    <div>
+      <base-dashboard-card
+        :uniq-name="'price'"
+        :style="{height: '130px', width: '180px'}"
+        :loading="loading"
+      >
+        <template #title>
+          Price
+        </template>
+
+        <template #content>
+          <q-list>
+            <q-item clickable>
+              <q-item-section>
+                <q-item-label class="text-h6">
+                  ${{ stats?.price.usd.toLocaleString() }}
+                </q-item-label>
+                <q-item-label caption>
+                  USD
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </template>
+      </base-dashboard-card>
+    </div>
   </div>
 </template>
 
@@ -64,6 +92,7 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import BaseDashboardCard from 'src/components/BaseDashboardCard.vue'
 import { openURL } from 'quasar'
+import { StatsData } from '@defichain/whale-api-client/dist/api/stats'
 import type { Action } from 'src/layouts/DashboardLayout.vue'
 
 dayjs.extend(relativeTime)
@@ -84,6 +113,8 @@ export default defineComponent({
 
     const loading = ref(false)
     const secondsToRefresh = ref(30)
+    // Stats
+    const stats = ref<StatsData | null>(null)
     // Last Block
     const lastBlock = ref(null) as any
     const blockHeight = ref(null) as any
@@ -99,6 +130,10 @@ export default defineComponent({
 
     const getStats = async () => {
       loading.value = true
+
+      // Stats
+      stats.value = await client.stats.get()
+
       // Latest Block
       const out = await client.blocks.list(1)
       console.log(out)
@@ -110,6 +145,7 @@ export default defineComponent({
       nextPriceBlock.value = DfiDusdOracleData[0].block.height + BlocksToNextPriceBlock
       const minutesToNextPriceBlock = (nextPriceBlock.value - blockHeight.value) / 2
       timeToNextPriceBlock.value = dayjs().add(minutesToNextPriceBlock, 'minutes').fromNow()
+
       secondsToRefresh.value = 30
       loading.value = false
     }
@@ -156,6 +192,7 @@ export default defineComponent({
       lastBlock,
       blockHeight,
       openURL,
+      stats,
       loading,
       nextPriceBlock,
       timeToNextPriceBlock

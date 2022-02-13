@@ -11,7 +11,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'dusdpools/', component: () => import('pages/DusdPools.vue') },
       // { path: 'dtokencharts/', component: () => import('pages/DtokenCharts.vue') },
       { path: 'credits/', component: () => import('pages/CreditsView.vue') },
-      { path: '', component: () => import('pages/DfiPools.vue') }]
+      { path: '', component: () => import('pages/DashboardView.vue') }]
   },
 
   // Always leave this as last one,
