@@ -1,8 +1,7 @@
 <template>
-  <div class="row q-gutter-md q-pa-xs">
+  <div class="row q-gutter-md q-pa-md">
     <div>
       <base-dashboard-card
-        class=""
         :uniq-name="'card1'"
         :style="{height: '130px', width: '180px'}"
         :loading="loading"
@@ -63,7 +62,34 @@
         :loading="loading"
       >
         <template #title>
-          Price
+          Price DFI
+        </template>
+
+        <template #content>
+          <q-list>
+            <q-item clickable>
+              <q-item-section>
+                <q-item-label class="text-h5">
+                  ${{ stats?.price.usd.toLocaleString() }}
+                </q-item-label>
+                <q-item-label caption>
+                  USD
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </template>
+      </base-dashboard-card>
+    </div>
+
+    <div>
+      <base-dashboard-card
+        :uniq-name="'price'"
+        :style="{height: '130px', width: '180px'}"
+        :loading="loading"
+      >
+        <template #title>
+          Total Burned
         </template>
 
         <template #content>
@@ -71,10 +97,10 @@
             <q-item clickable>
               <q-item-section>
                 <q-item-label class="text-h6">
-                  ${{ stats?.price.usd.toLocaleString() }}
+                  {{ (stats?.burned.total / 1000000).toFixed(2) }} M
                 </q-item-label>
                 <q-item-label caption>
-                  USD
+                  DFI
                 </q-item-label>
               </q-item-section>
             </q-item>
