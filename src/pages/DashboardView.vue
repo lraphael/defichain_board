@@ -1,6 +1,6 @@
 <template>
   <div class="row q-gutter-md q-pa-xs">
-    <div class="col-2">
+    <div>
       <base-dashboard-card
         class=""
         :uniq-name="'card1'"
@@ -28,7 +28,7 @@
         </template>
       </base-dashboard-card>
     </div>
-    <div class="col-2">
+    <div>
       <base-dashboard-card
         :uniq-name="'nextPriceBlock'"
         :style="{minHeight: '100px', width: '180px'}"
