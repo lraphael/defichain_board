@@ -85,6 +85,34 @@
     <div>
       <base-dashboard-card
         :uniq-name="'price'"
+        :style="{height: '130px', width: '200px'}"
+        :loading="loading"
+        @click="openURL('https://www.defichain-analytics.com/vaultsLoans?entry=burnedDFI')"
+      >
+        <template #title>
+          Burned dUSD Payback
+        </template>
+
+        <template #content>
+          <q-list>
+            <q-item clickable>
+              <q-item-section>
+                <q-item-label class="text-h6">
+                  {{ (defiBurnedCount / 1000000).toFixed(2) }} M
+                </q-item-label>
+                <q-item-label caption>
+                  DFI
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </template>
+      </base-dashboard-card>
+    </div>
+
+    <div>
+      <base-dashboard-card
+        :uniq-name="'price'"
         :style="{height: '130px', width: '180px'}"
         :loading="loading"
       >
@@ -119,6 +147,7 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 import BaseDashboardCard from 'src/components/BaseDashboardCard.vue'
 import { openURL } from 'quasar'
 import { StatsData } from '@defichain/whale-api-client/dist/api/stats'
+import { AddressToken } from '@defichain/whale-api-client/dist/api/address'
 import type { Action } from 'src/layouts/DashboardLayout.vue'
 
 dayjs.extend(relativeTime)
@@ -148,6 +177,10 @@ export default defineComponent({
     const nextPriceBlock = ref(null) as any
     const timeToNextPriceBlock = ref(null) as any
     const BlocksToNextPriceBlock = 120
+    // DFI Burned
+    const defiBurnAddress = '8defichainBurnAddressXXXXXXXdRQkSm'
+    const defiBurnedData = ref<AddressToken[] | null>(null)
+    const defiBurnedCount = ref(null) as any
 
     const updateCounter = () => {
       secondsToRefresh.value--
@@ -173,6 +206,15 @@ export default defineComponent({
 
       secondsToRefresh.value = 30
       loading.value = false
+
+      // DFI Burned Vault & Load
+      defiBurnedData.value = await client.address.listToken(defiBurnAddress)
+      if (defiBurnedData.value && defiBurnedData.value.length > 0) {
+        const dfiTokenValue = defiBurnedData.value.find(i => i.displaySymbol === 'DFI')
+        if (dfiTokenValue) {
+          defiBurnedCount.value = dfiTokenValue.amount
+        }
+      }
     }
 
     getStats()
@@ -220,7 +262,8 @@ export default defineComponent({
       stats,
       loading,
       nextPriceBlock,
-      timeToNextPriceBlock
+      timeToNextPriceBlock,
+      defiBurnedCount
     }
   }
 })
