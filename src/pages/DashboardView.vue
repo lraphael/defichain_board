@@ -1,9 +1,9 @@
 <template>
-  <div class="row q-gutter-md q-pa-md">
+  <div class="row q-gutter-md q-pa-xs">
     <div>
       <base-dashboard-card
         :uniq-name="'card1'"
-        :style="{height: '130px', width: '180px'}"
+        :style="{height: '130px', width: '193px'}"
         :loading="loading"
         @click="openURL('https://defiscan.live/')"
       >
@@ -31,7 +31,7 @@
     <div>
       <base-dashboard-card
         :uniq-name="'nextPriceBlock'"
-        :style="{height: '130px', width: '180px'}"
+        :style="{height: '130px', width: '193px'}"
         :loading="loading"
       >
         <template #title>
@@ -58,7 +58,7 @@
     <div>
       <base-dashboard-card
         :uniq-name="'price'"
-        :style="{height: '130px', width: '180px'}"
+        :style="{height: '130px', width: '193px'}"
         :loading="loading"
       >
         <template #title>
@@ -85,7 +85,7 @@
     <div>
       <base-dashboard-card
         :uniq-name="'price'"
-        :style="{height: '130px', width: '200px'}"
+        :style="{height: '130px', width: '193px'}"
         :loading="loading"
         @click="openURL('https://www.defichain-analytics.com/vaultsLoans?entry=burnedDFI')"
       >
@@ -113,7 +113,7 @@
     <div>
       <base-dashboard-card
         :uniq-name="'price'"
-        :style="{height: '130px', width: '180px'}"
+        :style="{height: '130px', width: '193px'}"
         :loading="loading"
       >
         <template #title>

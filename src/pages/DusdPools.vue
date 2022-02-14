@@ -2,13 +2,17 @@
   <q-page class="">
     <div class="q-pa-md">
       <base-table
-        :rows="rows"
+        :key="`${sortedRows.length}-${sortBy}-${descending}`"
+        class="my-sticky-header-column-table"
+        :rows="sortedRows"
         :columns="columns"
         :loading="loading"
         :row-key="'pair'"
         :rows-per-page="0"
         :full-heigth="false"
-        class="my-sticky-header-column-table"
+        :descending="descending"
+        :sort-by="sortBy"
+        @request="onRequest"
       >
         <template
           #header="props"
@@ -111,25 +115,25 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, inject, watch } from 'vue'
+import { defineComponent, ref, inject, watch, onBeforeUnmount } from 'vue'
 import { WhaleApiClient } from '@defichain/whale-api-client'
 import { StatsData } from '@defichain/whale-api-client/dist/api/stats'
 
 import BaseTable from 'src/components/BaseTable.vue'
 
-import type { TableColumn } from 'src/components/BaseTable.vue'
+import type { TableColumn, requestData } from 'src/components/BaseTable.vue'
 import type { Action } from 'src/layouts/DashboardLayout.vue'
 
 type Row = {
   pair: string,
-  liquidity: string,
-  rewardsPercent: string,
-  rewardsPerBlock: string
+  liquidity: number,
+  rewardsPercent: number,
+  rewardsPerBlock: number
   dexpriceDUSD: number,
   dexpricePremium: number,
   oraclePriceActive: number,
   oraclePriceNext: number,
-  apr: string
+  apr: number
 }
 
 export default defineComponent({
@@ -143,6 +147,9 @@ export default defineComponent({
     const secondsToRefresh = ref(30)
     const stockTokenRewardPercentage = ref(24.68)
     const loading = ref(false)
+    // sorting
+    const sortBy = ref<undefined | string>('apr')
+    const descending = ref(true)
 
     const poolRewards = {
       'DUSD-DFI': 50,
@@ -190,43 +197,43 @@ export default defineComponent({
         label: 'Pair',
         field: (row: Row) => row.pair,
         align: 'left',
-        sortable: false
+        sortable: true
       }, {
         name: 'liquidity',
         label: 'Liquidity [USD]',
         field: (row: Row) => row.liquidity,
         align: 'right',
-        sortable: false
+        sortable: true
       }, {
         name: 'rewardsPerBlock',
         label: 'Rewards [Block]',
-        field: (row: Row) => `${row.rewardsPerBlock} DFI`,
+        field: (row: Row) => `${row.rewardsPerBlock.toFixed(2)} DFI`,
         align: 'right',
-        sortable: false
+        sortable: true
       }, {
         name: 'rewardsPercent',
         label: 'Rewards [%]',
-        field: (row: Row) => `${Number(row.rewardsPercent).toFixed(2)}%`,
+        field: (row: Row) => `${row.rewardsPercent.toFixed(2)}%`,
         align: 'right',
-        sortable: false
+        sortable: true
       }, {
         name: 'apr',
         label: 'APR [%]',
-        field: (row: Row) => `${row.apr}%`,
+        field: (row: Row) => `${row.apr.toFixed(2)}%`,
         align: 'right',
-        sortable: false
+        sortable: true
       }, {
         name: 'oraclePriceActive',
         label: 'Active [USD]',
         field: (row: Row) => `${Number(row.oraclePriceActive).toFixed(2)}$`,
         align: 'right',
-        sortable: false
+        sortable: true
       }, {
         name: 'oraclePriceNext',
         label: 'Next [USD]',
         field: (row: Row) => `${Number(row.oraclePriceNext).toFixed(2)}$`,
         align: 'right',
-        sortable: false
+        sortable: true
       }, {
         name: 'dexpriceDUSD',
         label: 'Dex Price [DUSD]',
@@ -234,7 +241,7 @@ export default defineComponent({
           return `${Number(row.dexpriceDUSD).toFixed(2)} DUSD`
         },
         align: 'right',
-        sortable: false
+        sortable: true
       }, {
         name: 'dexpricePremium',
         label: 'Premium [%}',
@@ -242,36 +249,63 @@ export default defineComponent({
           return `${row.dexpricePremium.toFixed(2)}%`
         },
         align: 'right',
-        sortable: false
+        sortable: true
       }
     ] as TableColumn[]
 
+    /**
+     * Sorting
+     */
+    const sortedRows = ref([]) as any
+    const applySorting = () => {
+      if (!sortBy.value) {
+        sortedRows.value = rows.value
+        return
+      }
+      sortedRows.value = rows.value.sort((a: { [x: string]: number }, b: { [x: string]: number }) => {
+        if (sortBy.value) {
+          if (descending.value) {
+            return a[sortBy.value] < b[sortBy.value] ? 1 : -1
+          } else {
+            return a[sortBy.value] > b[sortBy.value] ? 1 : -1
+          }
+        } else {
+          return null
+        }
+      })
+    }
+
     const getPoolPairs = async () => {
       const res = await client.poolpairs.list()
+      const tmpRows = [] as Row[]
+      const promises = [] as Promise<any>[]
       res.filter(r => r.displaySymbol.includes('DUSD')).forEach(r => {
         let currency = r.symbol.split('-')[0]
         if (currency === 'DUSD') {
           currency = 'DFI'
         }
 
-        client.prices.getFeedActive(currency, 'USD', 1).then(activeFeed => {
+        promises.push(client.prices.getFeedActive(currency, 'USD', 1).then(activeFeed => {
           const oracleActive = activeFeed[0].active?.amount
           const oracleNext = activeFeed[0].next?.amount
           const dexpriceDUSD = r.displaySymbol !== 'DUSD-DFI' ? r.priceRatio.ba : r.priceRatio.ab
 
-          rows.value.push({
+          tmpRows.push({
             pair: r.displaySymbol,
-            liquidity: Number(r.totalLiquidity.usd).toFixed(0),
+            liquidity: Number(r.totalLiquidity.usd),
             rewardsPercent: parseFloat((poolRewards as any)[r.displaySymbol]),
-            rewardsPerBlock: (rewardsPerBlockDusdPairs.value * parseFloat((poolRewards as any)[r.displaySymbol]) / 100).toFixed(2),
-            dexpriceDUSD: dexpriceDUSD,
+            rewardsPerBlock: (rewardsPerBlockDusdPairs.value * parseFloat((poolRewards as any)[r.displaySymbol]) / 100),
+            dexpriceDUSD: Number(dexpriceDUSD),
             dexpricePremium: Number(dexpriceDUSD) * 100 / Number(oracleActive),
-            apr: ((r.apr?.total as number) * 100).toFixed(2),
-            oraclePriceActive: oracleActive,
-            oraclePriceNext: oracleNext
+            apr: ((r.apr?.total as number) * 100),
+            oraclePriceActive: Number(oracleActive),
+            oraclePriceNext: Number(oracleNext)
           })
-          // }
-        })
+        }))
+      })
+      Promise.all(promises).then(() => {
+        rows.value = tmpRows
+        applySorting()
       })
     }
     const getStats = async () => {
@@ -288,9 +322,13 @@ export default defineComponent({
 
     getStats()
 
-    setInterval(() => {
+    const autorefresh = setInterval(() => {
       updateCounter()
     }, 1000)
+
+    onBeforeUnmount(() => {
+      clearInterval(autorefresh)
+    })
 
     watch(secondsToRefresh, () => {
       if (secondsToRefresh.value <= 0) {
@@ -322,12 +360,25 @@ export default defineComponent({
       }
     })
 
+    const onRequest = (data: requestData) => {
+      // Sorting
+      if (data.pagination.sortBy) {
+        if (data.pagination.descending !== undefined) {
+          descending.value = data.pagination.descending
+        }
+        sortBy.value = data.pagination.sortBy
+        applySorting()
+      }
+    }
+
     return {
-      rows,
+      sortedRows,
       columns,
       loading,
       rewardsPerBlockDusdPairs,
-      secondsToRefresh
+      onRequest,
+      sortBy,
+      descending
     }
   }
 })

@@ -2,20 +2,24 @@
   <q-page class="">
     <div class="q-pa-md">
       <base-table
+        :key="`${sortedRows.length}-${sortBy}-${descending}`"
+        class="my-sticky-header-column-table"
         :loading="loading"
-        :rows="rows"
+        :rows="sortedRows"
         :columns="columns"
         :row-key="'pair'"
         :rows-per-page="0"
         :full-heigth="false"
-        class="my-sticky-header-column-table"
+        :descending="descending"
+        :sort-by="sortBy"
+        @request="onRequest"
       >
         <template #body-cell-dexpriceDFI="scope">
           <td
             class="text-right"
             style="border-right-width: 1px; width: 120px;"
           >
-            {{ scope.row.dexpriceDFI }} {{ scope.row.pair.split('-')[0] }}
+            {{ displayPrice(scope.row.dexpriceDFI) }} {{ scope.row.pair.split('-')[0] }}
           </td>
         </template>
 
@@ -24,7 +28,7 @@
             class="text-right"
             style="border-right-width: 1px; width: 120px;"
           >
-            {{ scope.row.dexpriceToken }} {{ scope.row.pair.split('-')[1] }}
+            {{ displayPrice(scope.row.dexpriceToken) }} {{ scope.row.pair.split('-')[1] }}
           </td>
         </template>
 
@@ -51,7 +55,7 @@
 <script lang="ts">
 import { defineComponent, ref, inject, watch, onBeforeUnmount } from 'vue'
 import BaseTable from 'src/components/BaseTable.vue'
-import type { TableColumn } from 'src/components/BaseTable.vue'
+import type { TableColumn, requestData } from 'src/components/BaseTable.vue'
 import type { Action } from 'src/layouts/DashboardLayout.vue'
 
 import { WhaleApiClient } from '@defichain/whale-api-client'
@@ -59,12 +63,12 @@ import { StatsData } from '@defichain/whale-api-client/dist/api/stats'
 
 type Row = {
   pair: string,
-  liquidity: string,
-  rewardsPercent: string,
-  rewardsPerBlock: string
+  liquidity: number,
+  rewardsPercent: number,
+  rewardsPerBlock: number
   dexpriceDFI: number,
   dexpriceToken: number,
-  apr: string
+  apr: number
 }
 
 export default defineComponent({
@@ -77,6 +81,9 @@ export default defineComponent({
     const rewardsPerBlockDfiPairs = ref(0)
     const secondsToRefresh = ref(30)
     const loading = ref(false)
+    // sorting
+    const sortBy = ref<undefined | string>('liquidity')
+    const descending = ref(true)
 
     const setFooterContent = inject('setFooterContent') as (text: string) => void
 
@@ -101,25 +108,25 @@ export default defineComponent({
         label: 'Pair',
         field: (row: Row) => row.pair,
         align: 'left',
-        sortable: false
+        sortable: true
       }, {
         name: 'liquidity',
         label: 'Liquidity [USD]',
         field: (row: Row) => row.liquidity,
         align: 'right',
-        sortable: false
+        sortable: true
       }, {
         name: 'rewardsPerBlock',
         label: 'Rewards [Block]',
-        field: (row: Row) => `${row.rewardsPerBlock} DFI`,
+        field: (row: Row) => `${row.rewardsPerBlock.toFixed(2)} DFI`,
         align: 'right',
-        sortable: false
+        sortable: true
       }, {
         name: 'rewardsPercent',
         label: 'Rewards [%]',
         field: (row: Row) => `${Number(row.rewardsPercent).toFixed(2)}%`,
         align: 'right',
-        sortable: false
+        sortable: true
       }, {
         name: 'dexpriceDFI',
         label: 'Dex Price [1 DFI]',
@@ -135,47 +142,61 @@ export default defineComponent({
           }
         },
         align: 'right',
-        sortable: false
+        sortable: true
       }, {
         name: 'dexpriceToken',
         label: 'Dex Price [1 Token]',
         field: (row: Row) => {
-          if (row.dexpriceToken < 0.0001) {
-            return row.dexpriceToken.toFixed(8)
-          } else {
-            if (row.dexpriceToken < 10) {
-              return row.dexpriceToken.toFixed(4)
-            } else {
-              return row.dexpriceToken.toFixed(2)
-            }
-          }
+          return row.dexpriceToken
         },
         align: 'right',
-        sortable: false
+        sortable: true
       }, {
         name: 'apr',
         label: 'APR',
-        field: (row: Row) => `${row.apr}%`,
+        field: (row: Row) => `${row.apr.toFixed(2)}%`,
         align: 'right',
-        sortable: false
+        sortable: true
       }
     ] as TableColumn[]
 
+    /**
+     * Sorting
+     */
+    const sortedRows = ref([]) as any
+    const applySorting = () => {
+      if (!sortBy.value) {
+        sortedRows.value = rows.value
+        return
+      }
+      sortedRows.value = rows.value.sort((a: { [x: string]: number }, b: { [x: string]: number }) => {
+        if (sortBy.value) {
+          if (descending.value) {
+            return a[sortBy.value] < b[sortBy.value] ? 1 : -1
+          } else {
+            return a[sortBy.value] > b[sortBy.value] ? 1 : -1
+          }
+        } else {
+          return null
+        }
+      })
+    }
+
     const getPoolPairs = async () => {
       const res = await client.poolpairs.list()
+      const tmpRows = [] as Row[]
       res.filter(r => r.displaySymbol.includes('DFI')).forEach(r => {
-        rows.value.push({
+        tmpRows.push({
           pair: r.displaySymbol,
-          liquidity: Number(r.totalLiquidity.usd).toFixed(0),
-          rewards: parseFloat(r.rewardPct) * 100,
+          liquidity: Number(r.totalLiquidity.usd),
           rewardsPercent: parseFloat(r.rewardPct) * 100,
-          rewardsPerBlock: (rewardsPerBlockDfiPairs.value * parseFloat(r.rewardPct)).toFixed(2),
-          dexprice: parseFloat(r.priceRatio.ab),
+          rewardsPerBlock: (rewardsPerBlockDfiPairs.value * parseFloat(r.rewardPct)),
           dexpriceDFI: parseFloat(r.priceRatio.ab),
           dexpriceToken: parseFloat(r.priceRatio.ba),
-          apr: ((r.apr?.total as number) * 100).toFixed(2)
+          apr: ((r.apr?.total as number) * 100)
         })
       })
+      rows.value = tmpRows
     }
 
     const getStats = async () => {
@@ -186,6 +207,7 @@ export default defineComponent({
       rewardsPerBlockDfiPairs.value = stats.value?.emission.dex
 
       await getPoolPairs()
+      applySorting()
       secondsToRefresh.value = 30
       loading.value = false
     }
@@ -230,11 +252,38 @@ export default defineComponent({
       }
     })
 
+    const onRequest = (data: requestData) => {
+      // Sorting
+      console.log('onRequest')
+      if (data.pagination.sortBy) {
+        if (data.pagination.descending !== undefined) {
+          descending.value = data.pagination.descending
+        }
+        sortBy.value = data.pagination.sortBy
+        applySorting()
+      }
+    }
+
+    const displayPrice = (price: number) => {
+      if (price < 0.0001) {
+        return price.toFixed(8)
+      } else {
+        if (price < 10) {
+          return price.toFixed(4)
+        } else {
+          return price.toFixed(2)
+        }
+      }
+    }
+
     return {
-      rows,
+      displayPrice,
+      sortedRows,
+      descending,
+      sortBy,
       columns,
       rewardsPerBlockDfiPairs,
-      secondsToRefresh,
+      onRequest,
       loading
     }
   }
