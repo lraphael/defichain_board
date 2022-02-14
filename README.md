@@ -1,6 +1,4 @@
-# Quasar App (vue3-quasar-cli)
-
-A Quasar Framework app
+# Defichain Board
 
 ## Install the dependencies
 ```bash
@@ -27,3 +25,6 @@ See [Configuring quasar.conf.js](https://v2.quasar.dev/quasar-cli/quasar-conf-js
 
 ### Vue Apollo Composition API
 See [Vue Apollo Composition API](https://v4.apollo.vuejs.org/guide-composable/).
+
+### Jellyfish Ecosystem
+See [Jellyfish](https://jellyfish.defichain.com/).
