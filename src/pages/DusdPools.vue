@@ -4,6 +4,7 @@
       <base-table
         :key="`${sortedRows.length}-${sortBy}-${descending}`"
         class="my-sticky-header-column-table"
+        :show-as-grid="showAsGrid"
         :rows="sortedRows"
         :columns="columns"
         :loading="loading"
@@ -150,6 +151,8 @@ export default defineComponent({
     // sorting
     const sortBy = ref<undefined | string>('apr')
     const descending = ref(true)
+    // card or table
+    const showAsGrid = ref(false)
 
     const poolRewards = {
       'DUSD-DFI': 50,
@@ -201,7 +204,7 @@ export default defineComponent({
       }, {
         name: 'liquidity',
         label: 'Liquidity [USD]',
-        field: (row: Row) => row.liquidity,
+        field: (row: Row) => row.liquidity.toLocaleString(),
         align: 'right',
         sortable: true
       }, {
@@ -346,6 +349,13 @@ export default defineComponent({
       active: true,
       hint: 'Refresh',
       label: 'Refresh',
+      order: 2
+    }, {
+      name: 'showAsGrid',
+      icon: 'mdi-table',
+      active: true,
+      hint: 'Table / Cards',
+      label: 'Table / Cards',
       order: 1
     }]
     setMainActions(actions)
@@ -357,6 +367,8 @@ export default defineComponent({
     watch(actionCalled, ({ action }) => {
       if (action === 'Refresh') {
         getStats()
+      } else if (action === 'showAsGrid') {
+        showAsGrid.value = !showAsGrid.value
       }
     })
 
@@ -372,6 +384,7 @@ export default defineComponent({
     }
 
     return {
+      showAsGrid,
       sortedRows,
       columns,
       loading,

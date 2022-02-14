@@ -4,6 +4,7 @@
       <base-table
         :key="`${sortedRows.length}-${sortBy}-${descending}`"
         class="my-sticky-header-column-table"
+        :show-as-grid="showAsGrid"
         :loading="loading"
         :rows="sortedRows"
         :columns="columns"
@@ -84,6 +85,8 @@ export default defineComponent({
     // sorting
     const sortBy = ref<undefined | string>('liquidity')
     const descending = ref(true)
+    // card or table
+    const showAsGrid = ref(false)
 
     const setFooterContent = inject('setFooterContent') as (text: string) => void
 
@@ -102,6 +105,18 @@ export default defineComponent({
     const setMainTitle = inject('setMainTitle') as (title: string, subTitle?: string) => void
     setMainTitle(title)
 
+    const displayPrice = (price: number) => {
+      if (price < 0.0001) {
+        return price.toFixed(8)
+      } else {
+        if (price < 10) {
+          return price.toFixed(4)
+        } else {
+          return price.toFixed(2)
+        }
+      }
+    }
+
     const columns = [
       {
         name: 'pair',
@@ -112,7 +127,7 @@ export default defineComponent({
       }, {
         name: 'liquidity',
         label: 'Liquidity [USD]',
-        field: (row: Row) => row.liquidity,
+        field: (row: Row) => row.liquidity.toLocaleString(),
         align: 'right',
         sortable: true
       }, {
@@ -131,15 +146,7 @@ export default defineComponent({
         name: 'dexpriceDFI',
         label: 'Dex Price [1 DFI]',
         field: (row: Row) => {
-          if (row.dexpriceDFI < 0.0001) {
-            return row.dexpriceDFI.toFixed(8)
-          } else {
-            if (row.dexpriceDFI < 10) {
-              return row.dexpriceDFI.toFixed(4)
-            } else {
-              return row.dexpriceDFI.toFixed(2)
-            }
-          }
+          return displayPrice(row.dexpriceDFI)
         },
         align: 'right',
         sortable: true
@@ -147,7 +154,7 @@ export default defineComponent({
         name: 'dexpriceToken',
         label: 'Dex Price [1 Token]',
         field: (row: Row) => {
-          return row.dexpriceToken
+          return displayPrice(row.dexpriceToken)
         },
         align: 'right',
         sortable: true
@@ -238,6 +245,13 @@ export default defineComponent({
       active: true,
       hint: 'Refresh',
       label: 'Refresh',
+      order: 2
+    }, {
+      name: 'showAsGrid',
+      icon: 'mdi-table',
+      active: true,
+      hint: 'Table / Cards',
+      label: 'Table / Cards',
       order: 1
     }]
     setMainActions(actions)
@@ -249,6 +263,8 @@ export default defineComponent({
     watch(actionCalled, ({ action }) => {
       if (action === 'Refresh') {
         getStats()
+      } else if (action === 'showAsGrid') {
+        showAsGrid.value = !showAsGrid.value
       }
     })
 
@@ -264,19 +280,8 @@ export default defineComponent({
       }
     }
 
-    const displayPrice = (price: number) => {
-      if (price < 0.0001) {
-        return price.toFixed(8)
-      } else {
-        if (price < 10) {
-          return price.toFixed(4)
-        } else {
-          return price.toFixed(2)
-        }
-      }
-    }
-
     return {
+      showAsGrid,
       displayPrice,
       sortedRows,
       descending,
