@@ -40,7 +40,7 @@
 
         <template #content>
           <q-list>
-            <q-item clickable>
+            <q-item>
               <q-item-section>
                 <q-item-label class="text-h5">
                   {{ nextPriceBlock }}
@@ -67,7 +67,7 @@
 
         <template #content>
           <q-list>
-            <q-item clickable>
+            <q-item>
               <q-item-section>
                 <q-item-label class="text-h5">
                   ${{ stats?.price.usd.toLocaleString() }}
@@ -122,7 +122,7 @@
 
         <template #content>
           <q-list>
-            <q-item clickable>
+            <q-item>
               <q-item-section>
                 <q-item-label class="text-h6">
                   {{ (stats?.burned.total / 1000000).toFixed(2) }} M
