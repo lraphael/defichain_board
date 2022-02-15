@@ -6,7 +6,8 @@
         class="my-sticky-header-column-table"
         :show-as-grid="showAsGrid"
         :rows="sortedRows"
-        :columns="columns"
+        :columns="configuredOrderedColumns"
+        :visible-columns="configuredVisibleColumns"
         :loading="loading"
         :row-key="'pair'"
         :rows-per-page="0"
@@ -20,18 +21,21 @@
         >
           <q-tr :props="props">
             <q-th
-              colspan="5"
+              v-if="countFirstEmptyColumns"
+              :colspan="countFirstEmptyColumns"
               class="bg-white"
             />
             <q-th
-              colspan="2"
+              v-if="countOracleColumns"
+              :colspan="countOracleColumns"
               class="bg-blue-2"
               style="z-index: 4;"
             >
               Oracle
             </q-th>
             <q-th
-              colspan="2"
+              v-if="countDexColumns"
+              :colspan="countDexColumns"
               class="bg-green-2"
               style="z-index: 4;"
             >
@@ -113,17 +117,26 @@
       </base-table>
     </div>
   </q-page>
+  <base-table-config-dialog
+    v-if="showGridConfigDialog"
+    :visible="showGridConfigDialog"
+    :columns="visibleColumns"
+    @cancel="showGridConfigDialog=false"
+    @confirm="onGridConfigConfirm"
+  />
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, inject, watch, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, inject, watch, onBeforeUnmount, onMounted, computed } from 'vue'
 import { WhaleApiClient } from '@defichain/whale-api-client'
 import { StatsData } from '@defichain/whale-api-client/dist/api/stats'
-
+import BaseTableConfigDialog from 'src/components/BaseTableConfigDialog.vue'
+import { getConfigByKey, setConfigByKey } from 'src/composables/useUserData'
 import BaseTable from 'src/components/BaseTable.vue'
 
 import type { TableColumn, requestData } from 'src/components/BaseTable.vue'
 import type { Action } from 'src/layouts/DashboardLayout.vue'
+import type { ColumnType } from 'src/components/BaseTableConfigDialog.vue'
 
 type Row = {
   pair: string,
@@ -139,9 +152,10 @@ type Row = {
 
 export default defineComponent({
   name: 'DusdPools',
-  components: { BaseTable },
+  components: { BaseTable, BaseTableConfigDialog },
   setup () {
     const title = 'DUSD Pools'
+    const uniqName = 'DusdPools'
     const rows = ref([]) as any
     const stats = ref<StatsData | null>(null)
     const rewardsPerBlockDusdPairs = ref(0)
@@ -257,6 +271,66 @@ export default defineComponent({
     ] as TableColumn[]
 
     /**
+     * Columns order and visibility
+     */
+    const showGridConfigDialog = ref(false)
+    const visibleColumns = ref<ColumnType[]>([])
+    const configKey = `list.${uniqName}`
+
+    onMounted(() => {
+      const config = getConfigByKey(configKey)
+
+      try {
+        visibleColumns.value = config.views.default.columns
+        if (config.views.default.sort.orderBy) {
+          sortBy.value = config.views.default.sort.orderBy as string
+          descending.value = config.views.default.sort.descending as boolean
+        }
+      } catch (error) {
+        console.log(error)
+        for (const column of columns) {
+          visibleColumns.value.push({
+            name: column.name,
+            label: column.label,
+            enabled: !column.hide
+          })
+        }
+      }
+    })
+
+    const configuredVisibleColumns = computed(() => {
+      return visibleColumns.value.filter(item => item.enabled).map(item => item.name)
+    })
+
+    const configuredOrderedColumns = computed(() => {
+      const orderedColumns = [] as ColumnType[]
+      for (const item of visibleColumns.value) {
+        const foundItem = (columns as any).find((column: { name: string }) => column.name === item.name) as any
+        orderedColumns.push(foundItem)
+      }
+      return orderedColumns
+    })
+
+    const onGridConfigConfirm = (columns: ColumnType[]) => {
+      visibleColumns.value = columns
+      showGridConfigDialog.value = false
+      // TODO: Filter
+      const newConfig = {
+        views: {
+          default: {
+            filter: null,
+            columns: columns,
+            sort: {
+              orderBy: sortBy.value,
+              descending: descending.value
+            }
+          }
+        }
+      }
+      setConfigByKey(configKey, newConfig)
+    }
+
+    /**
      * Sorting
      */
     const sortedRows = ref([]) as any
@@ -349,15 +423,23 @@ export default defineComponent({
       active: true,
       hint: 'Refresh',
       label: 'Refresh',
-      order: 2
+      order: 3
     }, {
       name: 'showAsGrid',
       icon: 'mdi-table',
       active: true,
       hint: 'Table / Cards',
       label: 'Table / Cards',
+      order: 2
+    }, {
+      name: 'tableSettings',
+      icon: 'mdi-table-cog',
+      active: true,
+      hint: 'Column Settings',
+      label: 'Column Setting',
       order: 1
     }]
+
     setMainActions(actions)
 
     const actionCalled = inject('actionCalled') as {
@@ -365,10 +447,16 @@ export default defineComponent({
       event: MouseEvent
     }
     watch(actionCalled, ({ action }) => {
-      if (action === 'Refresh') {
-        getStats()
-      } else if (action === 'showAsGrid') {
-        showAsGrid.value = !showAsGrid.value
+      switch (action) {
+        case 'Refresh':
+          getStats()
+          break
+        case 'showAsGrid':
+          showAsGrid.value = !showAsGrid.value
+          break
+        case 'tableSettings':
+          showGridConfigDialog.value = true
+          break
       }
     })
 
@@ -383,15 +471,40 @@ export default defineComponent({
       }
     }
 
+    /**
+     * Calculate Header Columns
+     */
+    const countOracleColumns = computed(() => {
+      return configuredVisibleColumns.value.filter((item) => item.includes('oracle')).length
+    })
+
+    const countDexColumns = computed(() => {
+      return configuredVisibleColumns.value.filter((item) => item.includes('dexprice')).length
+    })
+
+    const countFirstEmptyColumns = computed(() => {
+      return configuredVisibleColumns.value.length - countOracleColumns.value - countDexColumns.value
+    })
+
     return {
       showAsGrid,
       sortedRows,
-      columns,
       loading,
       rewardsPerBlockDusdPairs,
       onRequest,
       sortBy,
-      descending
+      descending,
+      // Header
+      countFirstEmptyColumns,
+      countOracleColumns,
+      countDexColumns,
+      // Column Settings
+      showGridConfigDialog,
+      configuredOrderedColumns,
+      visibleColumns,
+      configuredVisibleColumns,
+      onGridConfigConfirm
+
     }
   }
 })

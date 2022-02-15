@@ -7,7 +7,8 @@
         :show-as-grid="showAsGrid"
         :loading="loading"
         :rows="sortedRows"
-        :columns="columns"
+        :columns="configuredOrderedColumns"
+        :visible-columns="configuredVisibleColumns"
         :row-key="'pair'"
         :rows-per-page="0"
         :full-heigth="false"
@@ -51,16 +52,26 @@
       </base-table>
     </div>
   </q-page>
+  <base-table-config-dialog
+    v-if="showGridConfigDialog"
+    :visible="showGridConfigDialog"
+    :columns="visibleColumns"
+    @cancel="showGridConfigDialog=false"
+    @confirm="onGridConfigConfirm"
+  />
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, inject, watch, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, inject, watch, onBeforeUnmount, onMounted, computed } from 'vue'
 import BaseTable from 'src/components/BaseTable.vue'
 import type { TableColumn, requestData } from 'src/components/BaseTable.vue'
 import type { Action } from 'src/layouts/DashboardLayout.vue'
+import BaseTableConfigDialog from 'src/components/BaseTableConfigDialog.vue'
+import { getConfigByKey, setConfigByKey } from 'src/composables/useUserData'
 
 import { WhaleApiClient } from '@defichain/whale-api-client'
 import { StatsData } from '@defichain/whale-api-client/dist/api/stats'
+import type { ColumnType } from 'src/components/BaseTableConfigDialog.vue'
 
 type Row = {
   pair: string,
@@ -74,9 +85,10 @@ type Row = {
 
 export default defineComponent({
   name: 'DfiPools',
-  components: { BaseTable },
+  components: { BaseTable, BaseTableConfigDialog },
   setup () {
     const title = 'DFI Pools'
+    const uniqName = 'DfiPools'
     const rows = ref([]) as any
     const stats = ref<StatsData | null>(null)
     const rewardsPerBlockDfiPairs = ref(0)
@@ -168,6 +180,66 @@ export default defineComponent({
     ] as TableColumn[]
 
     /**
+     * Columns order and visibility
+     */
+    const showGridConfigDialog = ref(false)
+    const visibleColumns = ref<ColumnType[]>([])
+    const configKey = `list.${uniqName}`
+
+    onMounted(() => {
+      const config = getConfigByKey(configKey)
+
+      try {
+        visibleColumns.value = config.views.default.columns
+        if (config.views.default.sort.orderBy) {
+          sortBy.value = config.views.default.sort.orderBy as string
+          descending.value = config.views.default.sort.descending as boolean
+        }
+      } catch (error) {
+        console.log(error)
+        for (const column of columns) {
+          visibleColumns.value.push({
+            name: column.name,
+            label: column.label,
+            enabled: !column.hide
+          })
+        }
+      }
+    })
+
+    const configuredVisibleColumns = computed(() => {
+      return visibleColumns.value.filter(item => item.enabled).map(item => item.name)
+    })
+
+    const configuredOrderedColumns = computed(() => {
+      const orderedColumns = [] as ColumnType[]
+      for (const item of visibleColumns.value) {
+        const foundItem = (columns as any).find((column: { name: string }) => column.name === item.name) as any
+        orderedColumns.push(foundItem)
+      }
+      return orderedColumns
+    })
+
+    const onGridConfigConfirm = (columns: ColumnType[]) => {
+      visibleColumns.value = columns
+      showGridConfigDialog.value = false
+      // TODO: Filter
+      const newConfig = {
+        views: {
+          default: {
+            filter: null,
+            columns: columns,
+            sort: {
+              orderBy: sortBy.value,
+              descending: descending.value
+            }
+          }
+        }
+      }
+      setConfigByKey(configKey, newConfig)
+    }
+
+    /**
      * Sorting
      */
     const sortedRows = ref([]) as any
@@ -245,15 +317,23 @@ export default defineComponent({
       active: true,
       hint: 'Refresh',
       label: 'Refresh',
-      order: 2
+      order: 3
     }, {
       name: 'showAsGrid',
       icon: 'mdi-table',
       active: true,
       hint: 'Table / Cards',
       label: 'Table / Cards',
+      order: 2
+    }, {
+      name: 'tableSettings',
+      icon: 'mdi-table-cog',
+      active: true,
+      hint: 'Column Settings',
+      label: 'Column Setting',
       order: 1
     }]
+
     setMainActions(actions)
 
     const actionCalled = inject('actionCalled') as {
@@ -261,10 +341,16 @@ export default defineComponent({
       event: MouseEvent
     }
     watch(actionCalled, ({ action }) => {
-      if (action === 'Refresh') {
-        getStats()
-      } else if (action === 'showAsGrid') {
-        showAsGrid.value = !showAsGrid.value
+      switch (action) {
+        case 'Refresh':
+          getStats()
+          break
+        case 'showAsGrid':
+          showAsGrid.value = !showAsGrid.value
+          break
+        case 'tableSettings':
+          showGridConfigDialog.value = true
+          break
       }
     })
 
@@ -286,10 +372,15 @@ export default defineComponent({
       sortedRows,
       descending,
       sortBy,
-      columns,
       rewardsPerBlockDfiPairs,
       onRequest,
-      loading
+      loading,
+      // Column Settings
+      showGridConfigDialog,
+      configuredOrderedColumns,
+      visibleColumns,
+      configuredVisibleColumns,
+      onGridConfigConfirm
     }
   }
 })
