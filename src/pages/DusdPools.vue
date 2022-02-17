@@ -65,13 +65,19 @@
               key="rewardsPercent"
               :props="props"
             >
-              Rewards [%]
+              Rewards
             </q-th>
             <q-th
               key="apr"
               :props="props"
             >
-              APR [%]
+              APR
+            </q-th>
+            <q-th
+              key="apy"
+              :props="props"
+            >
+              APY [Weekly]
             </q-th>
             <q-th
               key="oraclePriceActive"
@@ -229,14 +235,20 @@ export default defineComponent({
         sortable: true
       }, {
         name: 'rewardsPercent',
-        label: 'Rewards [%]',
+        label: 'Rewards',
         field: (row: Row) => `${row.rewardsPercent.toFixed(2)}%`,
         align: 'right',
         sortable: true
       }, {
         name: 'apr',
-        label: 'APR [%]',
+        label: 'APR',
         field: (row: Row) => `${row.apr.toFixed(2)}%`,
+        align: 'right',
+        sortable: true
+      }, {
+        name: 'apy',
+        label: 'APY [Weekly]',
+        field: (row: Row) => `${(Number(Math.pow(1 + (row.apr / 100 / 52), 52) - 1) * 100).toFixed(2)}%`,
         align: 'right',
         sortable: true
       }, {

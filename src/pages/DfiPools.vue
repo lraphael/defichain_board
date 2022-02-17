@@ -176,6 +176,12 @@ export default defineComponent({
         field: (row: Row) => `${row.apr.toFixed(2)}%`,
         align: 'right',
         sortable: true
+      }, {
+        name: 'apy',
+        label: 'APY [Weekly]',
+        field: (row: Row) => `${(Number(Math.pow(1 + (row.apr / 100 / 52), 52) - 1) * 100).toFixed(2)}%`,
+        align: 'right',
+        sortable: true
       }
     ] as TableColumn[]
 
