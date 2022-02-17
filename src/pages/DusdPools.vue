@@ -402,7 +402,7 @@ export default defineComponent({
             rewardsPercent: parseFloat((poolRewards as any)[r.displaySymbol]),
             rewardsPerBlock: (rewardsPerBlockDusdPairs.value * parseFloat((poolRewards as any)[r.displaySymbol]) / 100),
             dexpriceDUSD: Number(dexpriceDUSD),
-            dexpricePremium: Number(dexpriceDUSD) * 100 / Number(oracleActive),
+            dexpricePremium: Number(dexpriceDUSD) * 100 / Number(oracleActive) - 100,
             apr: ((r.apr?.total as number) * 100),
             oraclePriceActive: Number(oracleActive),
             oraclePriceNext: Number(oracleNext)
