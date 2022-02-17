@@ -199,8 +199,8 @@ export default defineComponent({
         visibleColumns.value = config.views.default.columns
         // columns count changed
         if (visibleColumns.value.length !== columns.length) {
-          // adding new columns
-          for (const column of columns) {
+          // adding new columns to the correct position
+          for (const [i, column] of columns.entries()) {
             if (!visibleColumns.value.find(c => c.name === column.name)) {
               const newColumn = {
                 name: column.name,
@@ -210,7 +210,7 @@ export default defineComponent({
                 sortable: column.sortable,
                 enabled: true
               }
-              visibleColumns.value.push(newColumn)
+              visibleColumns.value.splice(i, 0, newColumn)
             }
           }
         }
