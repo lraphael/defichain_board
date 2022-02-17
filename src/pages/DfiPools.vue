@@ -197,6 +197,23 @@ export default defineComponent({
 
       try {
         visibleColumns.value = config.views.default.columns
+        // columns count changed
+        if (visibleColumns.value.length !== columns.length) {
+          // adding new columns
+          for (const column of columns) {
+            if (!visibleColumns.value.find(c => c.name === column.name)) {
+              const newColumn = {
+                name: column.name,
+                label: column.label,
+                field: column.field,
+                align: column.align,
+                sortable: column.sortable,
+                enabled: true
+              }
+              visibleColumns.value.push(newColumn)
+            }
+          }
+        }
         if (config.views.default.sort.orderBy) {
           sortBy.value = config.views.default.sort.orderBy as string
           descending.value = config.views.default.sort.descending as boolean
