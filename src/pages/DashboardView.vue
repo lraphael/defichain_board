@@ -87,6 +87,34 @@
         :uniq-name="'price'"
         :style="{height: '130px', width: '193px'}"
         :loading="loading"
+        @click="openURL('https://defiscan.live/')"
+      >
+        <template #title>
+          Total Value Locked
+        </template>
+
+        <template #content>
+          <q-list>
+            <q-item clickable>
+              <q-item-section>
+                <q-item-label class="text-h6">
+                  {{ (stats?.tvl.total / 1000000).toFixed(2) }} M
+                </q-item-label>
+                <q-item-label caption>
+                  DFI
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </template>
+      </base-dashboard-card>
+    </div>
+
+    <div>
+      <base-dashboard-card
+        :uniq-name="'price'"
+        :style="{height: '130px', width: '193px'}"
+        :loading="loading"
         @click="openURL('https://www.defichain-analytics.com/vaultsLoans?entry=burnedDFI')"
       >
         <template #title>
