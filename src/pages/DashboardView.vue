@@ -98,10 +98,10 @@
             <q-item clickable>
               <q-item-section>
                 <q-item-label class="text-h6">
-                  {{ (stats?.tvl.total / 1000000).toFixed(2) }} M
+                  ${{ parseFloat((stats?.tvl.total / 1000000).toFixed(2)).toLocaleString() }} M
                 </q-item-label>
                 <q-item-label caption>
-                  DFI
+                  USD
                 </q-item-label>
               </q-item-section>
             </q-item>
@@ -125,7 +125,7 @@
           <q-list>
             <q-item clickable>
               <q-item-section>
-                <q-item-label class="text-h6">
+                <q-item-label class="text-h5">
                   {{ (defiBurnedCount / 1000000).toFixed(2) }} M
                 </q-item-label>
                 <q-item-label caption>
@@ -152,7 +152,7 @@
           <q-list>
             <q-item>
               <q-item-section>
-                <q-item-label class="text-h6">
+                <q-item-label class="text-h5">
                   {{ (stats?.burned.total / 1000000).toFixed(2) }} M
                 </q-item-label>
                 <q-item-label caption>
