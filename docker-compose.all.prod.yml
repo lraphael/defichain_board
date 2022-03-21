@@ -1,37 +1,29 @@
 
 version: "3.4"
 
-# docker volume create defi_node_npm
-# docker volume create defi_dist
-
 services:
 
-  defi_dashboard:
-    hostname: defi_dashboard
-    container_name: defi_dashboard
+  defiboard_collector:
+    hostname: defiboard_collector
+    container_name: defiboard_collector
     build:
-      context: .
+      context: ./collector
       dockerfile: ./Dockerfile
       labels:
         pro.asix.description: "Defichain Dashboard"
         pro.asix.maintainer: "Raphael Lechner <raphael.lechner@gmail.com>"
         pro.asix.website: "https://defi.raphaellechner.it"
-    image: defi_dashboard
+    image: defiboard_collector
     restart: 'always'
-    volumes:
-      - .:/app
-      - defi_node_npm:/app/node_modules
-    ports:
-      - "9000:9000"
     stdin_open: true
     tty: true
-    command: bash -l
+    # command: ash
 
   defiboard_api:
     hostname: defiboard_api
     container_name: defiboard_api
     build:
-      context: ./server
+      context: ./api
       dockerfile: ./Dockerfile
       labels:
         pro.asix.description: "Defichain Dashboard"
@@ -39,15 +31,28 @@ services:
         pro.asix.website: "https://defi.raphaellechner.it"
     image: defiboard_api
     restart: 'always'
-    volumes:
-      - ./server:/app
-      - defiboard_api_node_npm:/app/node_modules
+    # volumes:
+    #   - ./api:/app
+    #   - defiboard_api_node_npm:/app/node_modules
+    ports:
+      - "3000"
     stdin_open: true
     tty: true
-    command: ash
+    # command: npm run dev
+    labels:
+      - traefik.http.routers.defiboard_api.rule=Host(`defichain-board.com`) && Path(`/graphql/`)
+      - traefik.http.routers.defiboard_api.tls=true
+      - traefik.http.routers.defiboard_api.tls.certresolver=le
+      - traefik.docker.network=traefik
+      - traefik.enable=true
+      - traefik.port=3000
+    networks:
+      - traefik
+      - default
+
 
   mongo:
-    image: mongo:5
+    image: mongo:4
     hostname: mongo
     restart: always
     container_name: mongo
@@ -58,28 +63,14 @@ services:
     volumes:
       - defiboard_mongo_data:/data/db
 
-  mongo_express:
-    hostname: mongo-express
-    image: mongo-express
-    restart: always
-    ports:
-      - 9081:8081
-    links:
-      - "mongo"
-    environment:
-      # ME_CONFIG_MONGODB_ADMINUSERNAME: defi
-      # ME_CONFIG_MONGODB_ADMINPASSWORD: defi.dev
-      ME_CONFIG_MONGODB_AUTH_USERNAME: defi
-      ME_CONFIG_MONGODB_AUTH_PASSWORD: defi.dev
-      ME_CONFIG_BASICAUTH_USERNAME: defi
-      ME_CONFIG_BASICAUTH_PASSWORD: defi.dev
-      # ME_CONFIG_MONGODB_ENABLE_ADMIN: 'false'
-      ME_CONFIG_MONGODB_SERVER: mongo
-
 volumes:
-    defi_node_npm:
-      external: true
-    defiboard_api_node_npm:
+    defiboard_collector_node_npm:
       external: true
     defiboard_mongo_data:
       external: true
+    defiboard_api_node_npm:
+      external: true
+
+networks:
+  traefik:
+    external: true

@@ -27,11 +27,30 @@ services:
     tty: true
     command: bash -l
 
+  defiboard_collector:
+    hostname: defiboard_collector
+    container_name: defiboard_collector
+    build:
+      context: ./collector
+      dockerfile: ./Dockerfile
+      labels:
+        pro.asix.description: "Defichain Dashboard"
+        pro.asix.maintainer: "Raphael Lechner <raphael.lechner@gmail.com>"
+        pro.asix.website: "https://defi.raphaellechner.it"
+    image: defiboard_collector
+    restart: 'always'
+    volumes:
+      - ./collector:/app
+      - defiboard_collector_node_npm:/app/node_modules
+    stdin_open: true
+    tty: true
+    # command: ash
+
   defiboard_api:
     hostname: defiboard_api
     container_name: defiboard_api
     build:
-      context: ./server
+      context: ./api
       dockerfile: ./Dockerfile
       labels:
         pro.asix.description: "Defichain Dashboard"
@@ -40,14 +59,16 @@ services:
     image: defiboard_api
     restart: 'always'
     volumes:
-      - ./server:/app
+      - ./api:/app
       - defiboard_api_node_npm:/app/node_modules
+    ports:
+      - "3000:3000"
     stdin_open: true
     tty: true
     command: ash
 
   mongo:
-    image: mongo:5
+    image: mongo:4
     hostname: mongo
     restart: always
     container_name: mongo
@@ -79,7 +100,9 @@ services:
 volumes:
     defi_node_npm:
       external: true
-    defiboard_api_node_npm:
+    defiboard_collector_node_npm:
       external: true
     defiboard_mongo_data:
+      external: true
+    defiboard_api_node_npm:
       external: true

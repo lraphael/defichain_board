@@ -3,15 +3,16 @@ import { RouteRecordRaw } from 'vue-router'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    component: () => import('layouts/DashboardLayout.vue'),
+    component: () => import('src/layouts/DashboardLayout.vue'),
     children: [
-      { path: 'dashboard/', component: () => import('pages/DashboardView.vue') },
-      { path: 'dfipools/', component: () => import('pages/DfiPools.vue') },
-      { path: 'dexmatrix/', component: () => import('pages/DexMatrix.vue') },
-      { path: 'dusdpools/', component: () => import('pages/DusdPools.vue') },
+      { path: 'dashboard/', component: () => import('src/pages/DashboardView.vue') },
+      { path: 'dfipools/', component: () => import('src/pages/DfiPools.vue') },
+      { path: 'dexmatrix/', component: () => import('src/pages/DexMatrix.vue') },
+      { path: 'dusdpools/', component: () => import('src/pages/DusdPools.vue') },
+      { path: 'historyapr/', component: () => import('src/pages/HistoryPools.vue') },
       // { path: 'dtokencharts/', component: () => import('pages/DtokenCharts.vue') },
-      { path: 'credits/', component: () => import('pages/CreditsView.vue') },
-      { path: '', component: () => import('pages/DashboardView.vue') }]
+      { path: 'credits/', component: () => import('src/pages/CreditsView.vue') },
+      { path: '', component: () => import('src/pages/DashboardView.vue') }]
   },
 
   // Always leave this as last one,

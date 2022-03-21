@@ -1,0 +1,19 @@
+
+version: "3.4"
+
+services:
+
+  mongo_express:
+    hostname: mongo-express
+    image: mongo-express
+    restart: always
+    ports:
+      - 9081:8081
+    links:
+      - "mongo"
+    environment:
+      ME_CONFIG_MONGODB_AUTH_USERNAME: defi
+      ME_CONFIG_MONGODB_AUTH_PASSWORD: defi.dev
+      ME_CONFIG_BASICAUTH_USERNAME: defi
+      ME_CONFIG_BASICAUTH_PASSWORD: defi.dev
+      ME_CONFIG_MONGODB_SERVER: mongo

@@ -7,7 +7,8 @@ import { boot } from 'quasar/wrappers'
 export default boot(
   /* async */ ({ app }) => {
     const httpLink = createHttpLink({
-      uri: '/graphql'
+      // uri: 'http://localhost:3000/graphql/'
+      uri: process.env.GRAPHQL_URI || '/graphql/'
     })
 
     const apolloClient = new ApolloClient({

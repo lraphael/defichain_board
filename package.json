@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "build": "quasar build",
-    "serve": "quasar dev",
+    "serve": "GRAPHQL_URI=http://localhost:3000/graphql/ quasar dev",
     "lint": "eslint --ext .js,.ts,.vue ./",
     "test": "echo \"See package.json => scripts for available tests.\" && exit 0",
     "test:e2e": "cross-env E2E_TEST=true start-test \"quasar dev -p 9000\" http-get://localhost:9000 \"cypress open\"",

@@ -9,7 +9,8 @@ export default async function (/* { app, router, store, ssrContext, urlPath, red
         // running quasar commands, for example:
         // `GRAPHQL_URI=https://prod.example.com/graphql quasar build`
         // `GRAPHQL_URI=https://dev.example.com/graphql quasar dev`
-        uri: process.env.GRAPHQL_URI || '/graphql'
+        uri: process.env.GRAPHQL_URI || '/graphql/'
+        // uri: process.env.GRAPHQL_URI || 'http://defiboard_api:3000/graphql/'
       },
 
       // 'apollo-cache-inmemory' config
@@ -26,17 +27,17 @@ export default async function (/* { app, router, store, ssrContext, urlPath, red
 
     // ssr: {},
 
-    // dev: {
-    //   httpLinkConfig: {
-    //     uri: process.env.GRAPHQL_URI || 'http://dev.example.com/graphql'
-    //   }
-    // },
+    dev: {
+      httpLinkConfig: {
+        uri: process.env.GRAPHQL_URI || 'http://defiboard_api:3000/graphql/'
+      }
+    },
 
-    // prod: {
-    //   httpLinkConfig: {
-    //     uri: process.env.GRAPHQL_URI || 'http://prod.example.com/graphql'
-    //   }
-    // },
+    prod: {
+      httpLinkConfig: {
+        uri: process.env.GRAPHQL_URI || '/graphql'
+      }
+    },
 
     // the following gets merged to the config only when using ssr and on server
     ssrOnServer: {

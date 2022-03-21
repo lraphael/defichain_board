@@ -1,0 +1,43 @@
+
+version: "3.4"
+
+services:
+
+  defiboard_api:
+    hostname: defiboard_api
+    container_name: defiboard_api
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+      labels:
+        pro.asix.description: "Defichain Dashboard"
+        pro.asix.maintainer: "Raphael Lechner <raphael.lechner@gmail.com>"
+        pro.asix.website: "https://defi.raphaellechner.it"
+    image: defiboard_api
+    restart: 'always'
+    volumes:
+      - ./:/app
+      - defiboard_api_node_npm:/app/node_modules
+    stdin_open: true
+    tty: true
+    # expose:
+    #   - 3000:3000
+    # command: ash
+
+  mongo:
+    image: mongo:4
+    hostname: mongo
+    restart: always
+    container_name: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: defi
+      MONGO_INITDB_ROOT_PASSWORD: defi.dev
+      MONGO_INITDB_DATABASE: defiboard
+    volumes:
+      - defiboard_mongo_data:/data/db
+
+volumes:
+    defiboard_api_node_npm:
+      external: true
+    defiboard_mongo_data:
+      external: true
