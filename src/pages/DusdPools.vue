@@ -390,7 +390,7 @@ export default defineComponent({
     }
 
     const getPoolPairs = async () => {
-      const res = await client.poolpairs.list()
+      const res = await client.poolpairs.list(100)
       const tmpRows = [] as Row[]
       const promises = [] as Promise<any>[]
       res.filter(r => r.displaySymbol.includes('DUSD')).forEach(r => {
