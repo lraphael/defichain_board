@@ -164,6 +164,34 @@
         </template>
       </base-dashboard-card>
     </div>
+
+    <div>
+      <base-dashboard-card
+        :uniq-name="'nextFutureBlock'"
+        :style="{height: '130px', width: '193px'}"
+        :loading="loading"
+        @click="openURL(`https://defiscan.live/blocks/countdown/${nextFutureBlock}`)"
+      >
+        <template #title>
+          Next Future Block
+        </template>
+
+        <template #content>
+          <q-list>
+            <q-item clickable>
+              <q-item-section>
+                <q-item-label class="text-h5">
+                  {{ nextFutureBlock }}
+                </q-item-label>
+                <q-item-label caption>
+                  {{ timeToNextFutureBlock }}
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </template>
+      </base-dashboard-card>
+    </div>
   </div>
 </template>
 
@@ -209,6 +237,11 @@ export default defineComponent({
     const defiBurnAddress = '8defichainBurnAddressXXXXXXXdRQkSm'
     const defiBurnedData = ref<AddressToken[] | null>(null)
     const defiBurnedCount = ref(null) as any
+    // Next Future Block
+    const firstFutureBlock = 1794240
+    const futureBlocks = 20160
+    const nextFutureBlock = ref(null) as any
+    const timeToNextFutureBlock = ref(null) as any
 
     const updateCounter = () => {
       secondsToRefresh.value--
@@ -243,6 +276,11 @@ export default defineComponent({
           defiBurnedCount.value = dfiTokenValue.amount
         }
       }
+
+      // Next Future Block
+      nextFutureBlock.value = (blockHeight.value - ((blockHeight.value - firstFutureBlock) % futureBlocks) + futureBlocks)
+      const minutesToFuturePriceBlock = (nextFutureBlock.value - blockHeight.value) / 2
+      timeToNextFutureBlock.value = dayjs().add(minutesToFuturePriceBlock, 'minutes').fromNow()
     }
 
     getStats()
@@ -291,7 +329,9 @@ export default defineComponent({
       loading,
       nextPriceBlock,
       timeToNextPriceBlock,
-      defiBurnedCount
+      defiBurnedCount,
+      nextFutureBlock,
+      timeToNextFutureBlock
     }
   }
 })
