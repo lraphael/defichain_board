@@ -246,13 +246,25 @@ export default defineComponent({
       }, {
         name: 'rewardsPerBlock',
         label: 'Rewards [Block]',
-        field: (row: Row) => `${row.rewardsPerBlock.toFixed(2)} DFI`,
+        field: (row: Row) => {
+          const rewardsPerBlock = row.rewardsPerBlock.toFixed(2)
+          if (rewardsPerBlock === 'NaN') {
+            return ''
+          }
+          return `${rewardsPerBlock} DFI`
+        },
         align: 'right',
         sortable: true
       }, {
         name: 'rewardsPercent',
         label: 'Rewards',
-        field: (row: Row) => `${row.rewardsPercent.toFixed(2)}%`,
+        field: (row: Row) => {
+          const percent = row.rewardsPercent.toFixed(2)
+          if (percent === 'NaN') {
+            return ''
+          }
+          return `${percent}%`
+        },
         align: 'right',
         sortable: true
       }, {
@@ -405,6 +417,10 @@ export default defineComponent({
         let currency = r.symbol.split('-')[0]
         if (currency === 'DUSD') {
           currency = 'DFI'
+        }
+
+        if (r.displaySymbol === 'dAMZN-dDUSD/v1') {
+          return
         }
 
         promises.push(client.prices.getFeedActive(currency, 'USD', 1).then(activeFeed => {
